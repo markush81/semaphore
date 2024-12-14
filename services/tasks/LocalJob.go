@@ -262,6 +262,27 @@ func (t *LocalJob) getTerraformArgs(username string, incomingVersion *string) (a
 		args = append(args, "-var", fmt.Sprintf("%s=%s", secret.Name, secret.Secret))
 	}
 
+	var templateExtraArgs []string
+	if t.Template.Arguments != nil {
+		err = json.Unmarshal([]byte(*t.Template.Arguments), &templateExtraArgs)
+		if err != nil {
+			t.Log("Invalid format of the template extra arguments, must be valid JSON")
+			return
+		}
+	}
+
+	var taskExtraArgs []string
+	if t.Template.AllowOverrideArgsInTask && t.Task.Arguments != nil {
+		err = json.Unmarshal([]byte(*t.Task.Arguments), &taskExtraArgs)
+		if err != nil {
+			t.Log("Invalid format of the TaskRunner extra arguments, must be valid JSON")
+			return
+		}
+	}
+	
+    args = append(args, templateExtraArgs...)
+    args = append(args, taskExtraArgs...)
+
 	return
 }
 
